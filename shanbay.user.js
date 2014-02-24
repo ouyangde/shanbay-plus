@@ -210,10 +210,12 @@ if ($('#to_add_vocabulary').length) {
 			'<form action="/api/v1/wordlist/vocabulary/" method="post">'+
 			'<textarea name="word"></textarea>'+
 			'<input type="submit" class="btn btn-success" value="提交">'+
-			'</form>');
-	notFound = $('<div class="hide"><h4>下列单词未找到</h4><ul></ul></div>');
+			'</form>'),
+	notFound = $('<div class="hide"><h4>下列单词未找到</h4><ul></ul></div>'),
+	dup = $('<div class="hide"><h4>下列单词已经存在</h4><ul></ul></div>'),
 	notAdd = $('<div class="hide"><h4>下列单词不予添加（数量限制？）</h4><ul></ul></div>');
-	$('#to_add_vocabulary').after(notAdd).after(notFound).after(wordForm);
+
+	$('#to_add_vocabulary').after(notAdd).after(dup).after(notFound).after(wordForm);
 
 	wordForm.submit(function() {
 		var form = $(this);
@@ -232,6 +234,7 @@ if ($('#to_add_vocabulary').length) {
 		textarea.focus().val('');
 		notFound.hide().find('ul').empty();
 		notAdd.hide().find('ul').empty();
+		dup.hide().find('ul').empty();
 
 		var finish_add = function(words) {
 			words.forEach(function(val){
@@ -250,6 +253,10 @@ if ($('#to_add_vocabulary').length) {
 					// 没找到
 					if (res.status_code == 404) {
 						notFound.show().find('ul').append('<li>'+word+'</li>');
+					}
+					else if (res.msg.match("存在")) {
+					   	// 单词已经存在
+						dup.show().find('ul').append('<li>'+word+'</li>');
 					}
 					// 其他原因
 					else if (true) {
