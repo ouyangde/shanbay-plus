@@ -1,6 +1,6 @@
 {
    "background": {
-   	"scripts": ["option.js", "background.js"]
+   	"scripts": ["jquery-1.7.1.min.js", "option.js", "js/lru_cache.js", "background.js"]
    },
    "options_page": "options.html",
    "content_scripts": [ {
@@ -8,6 +8,7 @@
       "exclude_matches": [  ],
       "include_globs": [ "http://www.shanbay.com/*" ],
       "js": [ "jquery-1.7.1.min.js", "option.js", "shanbay.user.js" ],
+	  "css": [ "style.css" ],
       "matches": [ "http://*/*", "https://*/*" ],
       "run_at": "document_idle"
    } ],
@@ -18,5 +19,6 @@
    "icons": {
       "128": "logo128.png"
    },
+   "permissions": [ "http://www.vocabulary.com/dictionary/*" ],
    "manifest_version": 2
 }

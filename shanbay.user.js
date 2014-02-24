@@ -306,3 +306,43 @@ chrome.runtime.sendMessage({
   script.textContent = "(" + main.toString() + ")(" + option + ");//@ sourceURL=shanbay_plus.js"; 
   document.body.appendChild(script);
 });
+
+	/*
+$('#review').bind('DOMSubtreeModified', function(ev) {
+	console.log(ev.srcElement);
+});
+	*/
+var target = document.querySelector('#review');
+var observer = new MutationObserver(function(mutations) {
+	if (mutations.length) {
+		var word = $('#current-learning-word').text();
+		if (word.length) {
+			chrome.runtime.sendMessage({
+				action: "getVocabulary",
+				word: word
+			}, function(response) {
+				if (response.length) {
+					var content = $(response).find('.blurb');
+					var readMore = content.find(".readMore");
+					if (readMore.length) {
+						readMore.attr('href', 'http://www.vocabulary.com' + readMore.attr('href'));
+						readMore.attr('target', '_blank');
+					}
+					if (content.length) {
+					var addReview = $(
+'<div id="shanbayplus_add_review" class="row">'+
+'<div class="span1"><h6 class="pull-right">助记</h6></div>'+
+'<div class="span6"></div>'+
+'</div>'
+						);
+						//$('#learning_word').after(addReview);
+						$('#learning-examples-box').after(addReview);
+						addReview.find('.span6').append(content);
+					}
+				}
+			});
+		}
+	}
+});
+var config = { attributes: true, childList: true, characterData: true };
+observer.observe(target, config);

@@ -12,6 +12,8 @@
 		return {
 			// 查词限制
 			LENGTH_PER_QUERY : getStorageValue('LENGTH_PER_QUERY', 330),
+			// 显示词汇助记
+			SHOW_VOCABULARY_HELP : getStorageValue('SHOW_VOCABULARY_HELP', 1),
 			// 跳过新版复习步骤
 			SKIP_REVIEW_MODE : getStorageValue('SKIP_REVIEW_MODE', 0)
 		};
@@ -21,22 +23,3 @@
 		for (i in option) localStorage[i] = option[i];
 	}
 })();
-
-if(typeof $ == 'function')
-$(function() {
-		var option = getOption();
-		$('#limit').val(option.LENGTH_PER_QUERY);
-		$('#skip').prop('checked', option.SKIP_REVIEW_MODE > 0);
-		$('#save').click(function(){
-			option.LENGTH_PER_QUERY = $('#limit').val();
-			option.SKIP_REVIEW_MODE = $('#skip').prop('checked') ? 1 : 0;
-			setOption(option);
-			// Update status to let user know options were saved.
-			var status = $("#status");
-			status.html("Options Saved.");
-			window.setTimeout(function() {
-				status.html("");
-			}, 750);
-		});
-
-});
