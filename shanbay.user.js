@@ -296,8 +296,9 @@ if (option.SKIP_REVIEW_MODE > 0 && typeof ReviewView != 'undefined') {
 	};
 }
 
-}// end of main
+}// end of main 整个main将被注入
 
+// 获取选项后注入到主页面
 chrome.runtime.sendMessage({
   action: "getOptions"
 }, function(response) {
@@ -307,42 +308,79 @@ chrome.runtime.sendMessage({
   document.body.appendChild(script);
 });
 
-	/*
-$('#review').bind('DOMSubtreeModified', function(ev) {
-	console.log(ev.srcElement);
-});
-	*/
+var word_trigger = {};
+var curword = '';
+// 监视#review的变动
 var target = document.querySelector('#review');
-var observer = new MutationObserver(function(mutations) {
-	if (mutations.length) {
+if (target) {
+	var observer = new MutationObserver(function(mutations) {
+		// 预加载
 		var word = $('#current-learning-word').text();
-		if (word.length) {
+		if (word) {
+			console.log("show vocabulary, true");
+			curword = word;
+			showVocabulary(word, true);
+			return;
+		}
+		word = $('#preview h1').eq(0).text();
+		if (word.length && !word_trigger[word]) {
+			word_trigger[word] = 1;
+			console.log("show vocabulary, false");
+			showVocabulary(word, false);
+		}
+	});
+	observer.observe(target, { childList: true });
+}
+
+//------------------------------------ 显示助记信息
+function showVocabulary(word, show) {
+	if (word.length) {
+		chrome.runtime.sendMessage({
+			action: "getOptions"
+		}, function(option) {
+			var pos = option.SHOW_VOCABULARY_HELP;
+			if (pos <= 0) return;
 			chrome.runtime.sendMessage({
 				action: "getVocabulary",
 				word: word
 			}, function(response) {
-				if (response.length) {
-					var content = $(response).find('.blurb');
-					var readMore = content.find(".readMore");
-					if (readMore.length) {
-						readMore.attr('href', 'http://www.vocabulary.com' + readMore.attr('href'));
-						readMore.attr('target', '_blank');
-					}
-					if (content.length) {
-					var addReview = $(
-'<div id="shanbayplus_add_review" class="row">'+
-'<div class="span1"><h6 class="pull-right">助记</h6></div>'+
-'<div class="span6"></div>'+
-'</div>'
-						);
-						//$('#learning_word').after(addReview);
-						$('#learning-examples-box').after(addReview);
-						addReview.find('.span6').append(content);
-					}
+				if (show && word == curword) {
+					showVocabularyResponse(response, pos - 1);
 				}
 			});
-		}
+		});
 	}
-});
-var config = { attributes: true, childList: true, characterData: true };
-observer.observe(target, config);
+}
+
+function showVocabularyResponse(response, pos) {
+	var content = $(response).find('.blurb');
+	if (true) {
+		var readMore = content.find(".readMore");
+		if (readMore.length) {
+			readMore.attr('href', 'http://www.vocabulary.com' + readMore.attr('href'));
+			readMore.attr('target', '_blank');
+		}
+		var addReview = $(
+				'<div id="shanbayplus_add_review" class="row">'+
+				'<div class="span1"><h6 class="pull-right">助记</h6></div>'+
+				'<div class="span6"></div>'+
+				'<div class="span3" style="text-align:right"><span style="margin-right:20px;color:#209e85;cursor:pointer;">展开/收起</span></div>'+
+				'</div>'
+				);
+		addReview.find('.span6').append(content);
+		content.find('.long').hide();
+		content.find('.sidebar').hide();
+		//$('#learning_word').after(addReview);
+		if (!pos) {
+			$('#learning_word .word').children().eq(1).before(addReview);
+		}
+		else {
+			$('#review .learning-detail-container').children().eq(pos).before(addReview);
+		}
+		addReview.find('.span3 span').click(function() {
+			content.find('.long').toggle();
+			content.find('.sidebar').toggle();
+		});
+		//$('#learning-examples-box').after(addReview);
+	}
+}
