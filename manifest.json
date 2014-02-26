@@ -19,6 +19,6 @@
    "icons": {
       "128": "logo128.png"
    },
-   "permissions": [ "http://www.vocabulary.com/dictionary/*" ],
+   "permissions": [ "http://www.vocabulary.com/dictionary/*", "unlimitedStorage" ],
    "manifest_version": 2
 }

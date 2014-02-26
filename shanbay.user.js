@@ -317,7 +317,6 @@ if (target) {
 		// 预加载
 		var word = $('#current-learning-word').text();
 		if (word) {
-			console.log("show vocabulary, true");
 			curword = word;
 			showVocabulary(word, true);
 			return;
@@ -325,7 +324,7 @@ if (target) {
 		word = $('#preview h1').eq(0).text();
 		if (word.length && !word_trigger[word]) {
 			word_trigger[word] = 1;
-			console.log("show vocabulary, false");
+			console.log("show vocabulary, trigger");
 			showVocabulary(word, false);
 		}
 	});
@@ -344,6 +343,7 @@ function showVocabulary(word, show) {
 				action: "getVocabulary",
 				word: word
 			}, function(response) {
+				console.log("show vocabulary, response");
 				if (show && word == curword) {
 					showVocabularyResponse(response, pos - 1);
 				}
@@ -364,20 +364,22 @@ function showVocabularyResponse(response, pos) {
 				'<div id="shanbayplus_add_review" class="row">'+
 				'<div class="span1"><h6 class="pull-right">助记</h6></div>'+
 				'<div class="span6"></div>'+
-				'<div class="span3" style="text-align:right"><span style="margin-right:20px;color:#209e85;cursor:pointer;">展开/收起</span></div>'+
+				'<div class="span3" style="text-align:right"><span style="margin-right:20px;color:#209e85;cursor:pointer;" title="快捷键：m">展开/收起</span></div>'+
 				'</div>'
 				);
 		addReview.find('.span6').append(content);
-		var toggle = function() {
-			content.find('.long').toggle();
-			content.find('.sidebar').toggle();
-		}
-		toggle();
+		content.find('.long').hide();
+		content.find('.sidebar').hide();
 		if (!pos) {
 			$('#learning_word .word').children().eq(1).before(addReview);
 		}
 		else {
 			$('#review .learning-detail-container').children().eq(pos).before(addReview);
+		}
+
+		var toggle = function() {
+			content.find('.long').toggle();
+			content.find('.sidebar').toggle();
 		}
 		addReview.find('.span3 span').click(toggle);
 
