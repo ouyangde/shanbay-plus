@@ -368,19 +368,25 @@ function showVocabularyResponse(response, pos) {
 				'</div>'
 				);
 		addReview.find('.span6').append(content);
-		content.find('.long').hide();
-		content.find('.sidebar').hide();
-		//$('#learning_word').after(addReview);
+		var toggle = function() {
+			content.find('.long').toggle();
+			content.find('.sidebar').toggle();
+		}
+		toggle();
 		if (!pos) {
 			$('#learning_word .word').children().eq(1).before(addReview);
 		}
 		else {
 			$('#review .learning-detail-container').children().eq(pos).before(addReview);
 		}
-		addReview.find('.span3 span').click(function() {
-			content.find('.long').toggle();
-			content.find('.sidebar').toggle();
-		});
-		//$('#learning-examples-box').after(addReview);
+		addReview.find('.span3 span').click(toggle);
+
+		$.Shortcuts.stop();
+		$.Shortcuts.empty();
+		$.Shortcuts.add({
+			type: 'up',
+			mask: 'm',
+			handler: toggle
+		}).start();
 	}
 }

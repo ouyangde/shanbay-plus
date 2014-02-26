@@ -1,22 +1,34 @@
 <html>
 	<head>
 		<title>Shanbay Plus Options</title>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 		<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
 		<script type="text/javascript" src="option.js"></script>
 		<script type="text/javascript" src="option_page.js"></script>
+		<style>
+			span{color:blue;}
+		</style>
 	</head>
 <body>
 	<div id="status"></div>
-	Query Limit: <input id="limit" type="text" value=""/><br/>
-	Skip Review Mode: <input id="skip" type="checkbox" /> <br/>
-	Vocabulary Help Position: <select id="vocabulary">
+	<p>阅读查词限制: <input id="limit" type="text" value=""/> <span>（每多少字查一次，设为0表示禁用）</span></p>
+	<p>跳过模式: <input id="skip" type="checkbox" /><span>（跳过背词过程中一遍遍的询问认不认识）</span></p>
+	<p>助记出现的位置: <select id="vocabulary">
 		<option value="0">None</option>
 		<option value="1">learning word</option>
 		<option value="2">roots</option>
 		<option value="3">affix</option>
 		<option value="4">examples</option>
 		<option value="5">notes</option>
-	</select> <br/>
-	<button id="save">Save</button>
+	</select></p>
+	<p>
+	<button id="save">保存</button>
+	</p>
+	<pre>
+其他辅助功能：
+1. 查词窗功能增强（美音、删除）
+2. 单词书创建时支持批量添加
+3. 我的词库批量添加时的功能增强（显示熟悉度、不限添加数量）
+	</pre>
 </body>
 </html>
