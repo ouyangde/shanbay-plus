@@ -24,50 +24,32 @@ function getStorageValue(key, defaultVal) {
 */
 
 // -------------------------------------------------------查词窗口
-$('#search-result-title-tmpl').text('<div class="word-container"> <span class="word">${content}</span> {{if pronunciation}} <span class="pronunciation">[${pronunciation}]</span> {{/if}} <span class="icon speaker uk"></span> <span class="icon speaker us"></span></div>');
-
-search_word = function(word) {
-    var matched_pattern = word.match(/[\w- ]+/);
-    if (!matched_pattern) {
-        var title = $('#no_search_tmpl').tmpl().html();
-        $('.navbar-search').attr('data-original-title', title);
-        $('.navbar-search').popover({placement: 'bottom',trigger: "manual"}).popover('show');
-        return;
-    }
-    $('.navbar-search').attr('data-original-title', TEXTS["loading"]).attr('data-content', '');
-    show_popup();
-    if (word == '' || word.length < 2) {
-        return;
-    }
-    $.getJSON('/api/v1/bdc/search/?word=' + word, function(r) {
-        show_result(r, word);
-        $('.popover .uk').click(function(e) {
-            speak(r);
-            return false;
-        });
-        $('.popover .us').click(function(e) {
-			play_mp3(r.data.us_audio);
-            return false;
-        });
-		if (r.data.learning_id) {
-			$('.popover .us').after('<span class="icon del"></span>');
-			$('.popover .del').click(function(e) {
-				$.ajax({type:"DELETE",url:"/api/v1/bdc/learning/"+r.data.learning_id+"/", 'success':function(){
-					$('.popover .del').remove();
-					$('.popover .add').remove();
-				}});
-				return false;
+speak = function(r) {// 直接发用户首选的音
+	play_mp3(r.data.audio);
+};
+var target = document.querySelector('body');
+if (target) {
+	var observer = new MutationObserver(function(mutations) {
+		mutations.forEach(function(record) {
+			Array.prototype.forEach.call(record.addedNodes, function(node) {
+				if ($(node).is('.popover')) {
+					var href = $('.popover .btn-success').attr('href');
+					var learning_id = href ?  href.match(/\d+/) : 0;
+					if (learning_id) {
+						$('.popover .speaker').after('<span class="icon del"></span>');
+						$('.popover .del').click(function(e) {
+							$.ajax({type:"DELETE",url:"/api/v1/bdc/learning/"+learning_id+"/", 'success':function(){
+								$('.popover .add').remove();
+								$('.popover .del').remove();
+							}});
+							return false;
+						});
+					}
+				}
 			});
-		}
-        $('#add-word').click(function(e) {
-            add_word(e, r.data);
-            return false;
-        });
-        $('.add .forget').click(function(e) {
-            forget(e, r);
-            return false;
-        });
-    });
+		});
+	});
+	observer.observe(target, { childList: true });
 }
 
 // ---------------------------------------------批量添加
