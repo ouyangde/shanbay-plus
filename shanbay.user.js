@@ -11,46 +11,10 @@ GM_addStyle('.icon.del{cursor:pointer;position:absolute;cursor: pointer;padding:
 
 function main(option) {
 
-	/*
-function getStorageValue(key, defaultVal) {
-	if (typeof(localStorage[key]) === 'undefined') {
-		localStorage[key] = defaultVal;
-	}
-	else {
-		defaultVal = parseInt(localStorage[key], 10);
-	}
-	return defaultVal;
-}
-*/
-
 // -------------------------------------------------------查词窗口
 speak = function(r) {// 直接发用户首选的音
 	play_mp3(r.data.audio);
 };
-var target = document.querySelector('body');
-if (target) {
-	var observer = new MutationObserver(function(mutations) {
-		mutations.forEach(function(record) {
-			Array.prototype.forEach.call(record.addedNodes, function(node) {
-				if ($(node).is('.popover')) {
-					var href = $('.popover .btn-success').attr('href');
-					var learning_id = href ?  href.match(/\d+/) : 0;
-					if (learning_id) {
-						$('.popover .speaker').after('<span class="icon del"></span>');
-						$('.popover .del').click(function(e) {
-							$.ajax({type:"DELETE",url:"/api/v1/bdc/learning/"+learning_id+"/", 'success':function(){
-								$('.popover .add').remove();
-								$('.popover .del').remove();
-							}});
-							return false;
-						});
-					}
-				}
-			});
-		});
-	});
-	observer.observe(target, { childList: true });
-}
 
 // ---------------------------------------------批量添加
 $('#add-learnings .instruction').append('<font color="blue">已解除10个词的限制(每次依然仅提交10个，但多出的词会保留在文本框内，以备再次提交)</font>');
@@ -147,34 +111,21 @@ $('#add-learnings-form').unbind('submit').submit(function() {
 var reader_nav = $('.reader-nav');
 if (option.LENGTH_PER_QUERY>0 && reader_nav.length) {
 	reader_nav.append('<span style="position:relative;left:50px;">剩余查词：<b class="query-number" style="font-size:20px;color:#ec4272"></b></span>');
-	// backbone非常烂，竟然还在用
-	Word = Backbone.Model.extend({
-		urlRoot: '/api/v1/bdc/search/',
-		parse: function(response) {
-			data = response.data;
-			var queryNum = $('.reader-nav').find('.query-number').text();
-			if (response.status_code == 0 && queryNum > 0) {
-				data.result = 0;
-				g_variations_words[this.get('word')] = data.content;
-				g_variations_words[data.content] = data.content;
-				g_words_definitions[data.content] = data;
-				if (!(data.content in g_words_variations)) {
-					g_words_variations[data.content] = [data.content];
-					$('.reader-nav').find('.query-number').text(queryNum-1);
-				}
-				push_unique(g_words_variations[data.content], this.get('word'));
-				this.set('word', data.content);
-			} else {
-				data.result = 1;
-				data.note = response.msg;
-			}
-			return data;
+	var old_parse = Word.prototype.parse;
+	var queryed = {};
+	Word.prototype.parse = function(response) {
+		var queryNum = $('.reader-nav').find('.query-number').text();
+		if (response.status_code == 0 && !(data.content in queryed)) {
+			$('.reader-nav').find('.query-number').text(queryNum-1);
+			queryed[data.content] = 1;
 		}
-	});
+		return old_parse.apply(this, arguments);
+	};
+
 	var lastLength = 0;
 	var lisenerID = setInterval(function(){
 		if (app.article && app.article.attributes.data) {
-			// 500个查一次
+			// option.LENGTH_PER_QUERY: 多少个查一次
 			var length = app.article.attributes.data.length;
 			if (length != lastLength) {
 				lastLength = length;
@@ -345,9 +296,10 @@ function showVocabularyResponse(response, pos) {
 		var addReview = $(
 				'<div id="shanbayplus_add_review" class="row">'+
 				'<div class="span1"><h6 class="pull-right">助记</h6></div>'+
-				'<div class="span6"></div>'+
-				'<div class="span3" style="text-align:right"><span style="margin-right:20px;color:#209e85;cursor:pointer;" title="快捷键：m">展开/收起</span></div>'+
-				'</div>'
+				'<div class="span9"><div class="well" style="overflow:hidden">'+
+				'<div class="span6" style="margin-left:0px;"></div>'+
+				'<div class="expand" style="text-align:right"><span style="color:#209e85;cursor:pointer;" title="快捷键：m">展开/收起</span></div>'+
+				'</div></div></div>'
 				);
 		addReview.find('.span6').append(content);
 		content.find('.long').hide();
@@ -363,7 +315,7 @@ function showVocabularyResponse(response, pos) {
 			content.find('.long').toggle();
 			content.find('.sidebar').toggle();
 		}
-		addReview.find('.span3 span').click(toggle);
+		addReview.find('.expand span').click(toggle);
 
 		$.Shortcuts.stop();
 		$.Shortcuts.empty();

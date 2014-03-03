@@ -42,3 +42,18 @@
 #shanbayplus_add_review .sidebar .readMore {
     white-space: nowrap
 }
+
+.retention-progress {
+  height: 20px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+}
+.retention-progress .retention-reviewed {
+  height: 20px;
+  background-color: #209E85;
+}
+.retention-progress .retention-reviewed .bar {
+  text-align: center;
+  color: white;
+  font-size: 14px;
+}
