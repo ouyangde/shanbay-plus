@@ -8,7 +8,7 @@
 		}
 		return defaultVal;
 	}
-	window.getOption = function() {
+	getOption = function() {
 		return {
 			// 查词限制
 			LENGTH_PER_QUERY : getStorageValue('LENGTH_PER_QUERY', 330),
@@ -19,7 +19,7 @@
 		};
 	}
 
-	window.setOption = function(option) {
+	setOption = function(option) {
 		for (i in option) localStorage[i] = option[i];
 	}
 })();

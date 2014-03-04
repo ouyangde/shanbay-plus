@@ -1,13 +1,13 @@
 {
    "background": {
-   	"scripts": ["jquery-1.7.1.min.js", "option.js", "js/lru_cache.js", "background.js"]
+   	"scripts": ["js/jquery-1.7.1.min.js", "env.js", "option.js", "js/lru_cache.js", "background.js"]
    },
    "options_page": "options.html",
    "content_scripts": [ {
       "exclude_globs": [  ],
       "exclude_matches": [  ],
       "include_globs": [ "http://www.shanbay.com/*" ],
-      "js": [ "jquery-1.7.1.min.js", "js/jquery.shortcuts.js", "shanbay.user.js" ],
+      "js": [ "js/jquery-1.7.1.min.js", "js/jquery.shortcuts.js", "env.js", "shanbay.user.js" ],
 	  "css": [ "style.css" ],
       "matches": [ "http://*/*", "https://*/*" ],
       "run_at": "document_idle"
@@ -15,7 +15,7 @@
    "converted_from_user_script": true,
    "description": "\u67E5\u8BCD\u754C\u9762\u589E\u52A0\u7F8E\u5F0F\u53D1\u97F3,\u5220\u9664\u5355\u8BCD;\u6279\u91CF\u6DFB\u52A0\u5355\u8BCD\u589E\u5F3A;\u5355\u8BCD\u4E66\u521B\u5EFA\u589E\u5F3A;\u67E5\u8BCD\u9650\u5236",
    "name": "Shanbay Plus",
-   "version": "0.84",
+   "version": "0.85",
    "icons": {
       "128": "logo128.png"
    },

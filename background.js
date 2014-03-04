@@ -100,7 +100,7 @@ function getVocabularyViaDB(word, callback) {
 
 // 通过网络请求一个单词
 function getVocabularyViaWeb(word, callback) {
-	$.ajax('http://www.vocabulary.com/dictionary/definition.ajax?search='+word+'&lang=en', {
+	shanbayplus_ajax('http://www.vocabulary.com/dictionary/definition.ajax?search='+word+'&lang=en', {
 		'type': 'GET',
 		'error': function() {
 			callback("", false);
@@ -121,7 +121,7 @@ function getVocabularyViaWeb(word, callback) {
 	});
 }
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+onMessage(function(request, sender, sendResponse) {
   if (request.action == "getOptions")
     sendResponse(getOption());
   else if (request.action == "getVocabulary")

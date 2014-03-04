@@ -1,13 +1,3 @@
-// ==UserScript==
-// @name           Shanbay Plus
-// @description    查词界面增加美式发音,删除单词;批量添加单词增强;单词书创建增强;查词限制
-// @version        0.7
-// @author         unknown
-// @namespace      http://shanbay.com/
-// @include        http://www.shanbay.com/*
-// ==/UserScript==
-
-GM_addStyle('.icon.del{cursor:pointer;position:absolute;cursor: pointer;padding: 10px 10px; right: 6px;top:14px; background: url(http://qstatic.shanbay.com/static/img/icons.png) no-repeat -68px -38px; }'); 
 
 function main(option) {
 
@@ -232,7 +222,7 @@ if (option.SKIP_REVIEW_MODE > 0 && typeof ReviewView != 'undefined') {
 }// end of main 整个main将被注入
 
 // 获取选项后注入到主页面
-chrome.runtime.sendMessage({
+sendMessage({
   action: "getOptions"
 }, function(response) {
   var script = document.createElement("script");
@@ -240,6 +230,12 @@ chrome.runtime.sendMessage({
   script.textContent = "(" + main.toString() + ")(" + option + ");//@ sourceURL=shanbay_plus.js"; 
   document.body.appendChild(script);
 });
+/*
+  var script = document.createElement("script");
+  var option = JSON.stringify(getOption());
+  script.textContent = "(" + main.toString() + ")(" + option + ");//@ sourceURL=shanbay_plus.js"; 
+  document.body.appendChild(script);
+*/
 
 var word_trigger = {};
 var curword = '';
@@ -267,12 +263,12 @@ if (target) {
 //------------------------------------ 显示助记信息
 function showVocabulary(word, show) {
 	if (word.length) {
-		chrome.runtime.sendMessage({
+		sendMessage({
 			action: "getOptions"
 		}, function(option) {
 			var pos = option.SHOW_VOCABULARY_HELP;
 			if (pos <= 0) return;
-			chrome.runtime.sendMessage({
+			sendMessage({
 				action: "getVocabulary",
 				word: word
 			}, function(response) {
