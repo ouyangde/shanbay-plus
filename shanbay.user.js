@@ -283,6 +283,9 @@ function showVocabulary(word, show) {
 
 function showVocabularyResponse(response, pos) {
 	var content = $(response).find('.blurb');
+	if (!content.length && response.length < 10) {
+		content = $('<font color="gray"></font>').text(response);
+	}
 	if (true) {
 		var readMore = content.find(".readMore");
 		if (readMore.length) {

@@ -100,10 +100,13 @@ function getVocabularyViaDB(word, callback) {
 
 // 通过网络请求一个单词
 function getVocabularyViaWeb(word, callback) {
+	var opt = getOption();
+	var timeout = opt['SHOW_VOCABULARY_TIMEOUT'];
 	shanbayplus_ajax('http://www.vocabulary.com/dictionary/definition.ajax?search='+word+'&lang=en', {
 		'type': 'GET',
+		'timeout': timeout,
 		'error': function() {
-			callback("", false);
+			callback('查询超时', false);
 		},
 		'success': function(resp) {
 			if (resp.match('wordPage')) {
@@ -115,7 +118,7 @@ function getVocabularyViaWeb(word, callback) {
 			}
 			else {
 				// 其他
-				callback('', false);
+				callback('查询出错', false);
 			}
 		}
 	});

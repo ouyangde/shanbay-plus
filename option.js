@@ -14,6 +14,8 @@
 			LENGTH_PER_QUERY : getStorageValue('LENGTH_PER_QUERY', 330),
 			// 显示词汇助记
 			SHOW_VOCABULARY_HELP : getStorageValue('SHOW_VOCABULARY_HELP', 1),
+			// 显示词汇助记超时
+			SHOW_VOCABULARY_TIMEOUT : getStorageValue('SHOW_VOCABULARY_TIMEOUT', 3000),
 			// 跳过新版复习步骤
 			SKIP_REVIEW_MODE : getStorageValue('SKIP_REVIEW_MODE', 0)
 		};
