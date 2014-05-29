@@ -1,3 +1,6 @@
+#learnings-library .learning .operations .success {
+  padding: 0px !important;
+}
 
 #shanbayplus_add_review .blurb {
     color: #444;

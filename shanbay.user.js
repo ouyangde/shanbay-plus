@@ -274,17 +274,20 @@ function showVocabulary(word, show) {
 			}, function(response) {
 				console.log("show vocabulary, response");
 				if (show && word == curword) {
-					showVocabularyResponse(response, pos - 1);
+					showVocabularyResponse(word, response, pos - 1);
 				}
 			});
 		});
 	}
 }
 
-function showVocabularyResponse(response, pos) {
+var g_expandVocabulary = false; // 默认情况不展开
+
+function showVocabularyResponse(word, response, pos) {
 	var content = $(response).find('.blurb');
 	if (!content.length && response.length < 10) {
-		content = $('<font color="gray"></font>').text(response);
+		// 显示错误信息
+		content = $('<span class="error" style="color:gray;cursor:pointer"></span>').text(response);
 	}
 	if (true) {
 		var readMore = content.find(".readMore");
@@ -301,8 +304,10 @@ function showVocabularyResponse(response, pos) {
 				'</div></div></div>'
 				);
 		addReview.find('.span6').append(content);
-		content.find('.long').hide();
-		content.find('.sidebar').hide();
+		if (!g_expandVocabulary) {
+			content.find('.long').hide();
+			content.find('.sidebar').hide();
+		}
 		if (!pos) {
 			$('#learning_word .word').children().eq(1).before(addReview);
 		}
@@ -311,10 +316,15 @@ function showVocabularyResponse(response, pos) {
 		}
 
 		var toggle = function() {
+			g_expandVocabulary = !g_expandVocabulary;
 			content.find('.long').toggle();
 			content.find('.sidebar').toggle();
 		}
 		addReview.find('.expand span').click(toggle);
+		addReview.find('.error').click(function() {
+			addReview.remove();
+			showVocabulary(word, true);
+		});
 
 		$.Shortcuts.stop();
 		$.Shortcuts.empty();
