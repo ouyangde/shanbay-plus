@@ -60,3 +60,33 @@
   color: white;
   font-size: 14px;
 }
+
+#ex-voc-box li {
+	clear: both;
+	overflow: hidden;
+	list-style-position: inside;
+}
+#ex-voc-box ol {
+	list-style:decimal !important;
+	margin-left: 0px;
+}
+#ex-voc-box .source {
+float: left;
+font-size: 12px;
+text-decoration: none;
+color: #777;
+font-style: italic;
+display: block;
+margin: .25em 0 1em 0;
+}
+#ex-voc-box .source .date {
+color: #bbb;
+margin-left: 10px;
+font-size: 11px;
+font-style: normal;
+}
+#ex-voc-box li .actions {
+	position: relative !important;
+	right: 0;
+	bottom: 0;
+}

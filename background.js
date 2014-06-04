@@ -124,11 +124,40 @@ function getVocabularyViaWeb(word, callback) {
 	});
 }
 
+function getVocabularyExamples(word, offset, callback) {
+	var opt = getOption();
+	var timeout = opt['SHOW_VOCABULARY_TIMEOUT'];
+	shanbayplus_ajax('http://corpus.vocabulary.com/api/1.0/examples.json', {
+		data: {
+			query: word,
+			maxResults: 24,
+			startOffset: offset,
+			filter: 0
+	    },
+		'type': 'GET',
+		'timeout': timeout,
+		'error': function() {
+			callback('{}');
+		},
+		'success': function(resp) {
+			callback(resp);
+		}
+	});
+	return true;
+}
+
 onMessage(function(request, sender, sendResponse) {
-  if (request.action == "getOptions")
+  if (request.action == "getOptions") {
     sendResponse(getOption());
-  else if (request.action == "getVocabulary")
+  }
+  else if (request.action == "getVocabulary") {
     return getVocabulary(request.word,sendResponse);
-  else
+  }
+  else if (request.action == "getVocabularyExamples") {
+	// must return a value, if not immediately send a response.
+    return getVocabularyExamples(request.word, request.offset, sendResponse);
+  }
+  else {
     sendResponse({});
+  }
 });

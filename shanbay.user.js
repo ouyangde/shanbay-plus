@@ -248,6 +248,7 @@ if (target) {
 		if (word) {
 			curword = word;
 			showVocabulary(word, true);
+			addVocabularySample(word);
 			return;
 		}
 		word = $('#preview h1').eq(0).text();
@@ -335,3 +336,125 @@ function showVocabularyResponse(word, response, pos) {
 		}).start();
 	}
 }
+
+//-------------------vocabulary.com examples----------------------------
+function addVocabularySample(word)
+{
+	var tab = $('<li><a class="ex-voc-box-tab" href="#ex-voc-box">Vocabulary例句</a></li>');
+	var tab_content = $('<div class="tab-pane ex-group" id="ex-voc-box"><ol></ol></div>');
+	$('#example-tab').append(tab);
+	$('#example-tab').next().append(tab_content);
+	tab.click(function() {
+		showVocabularySample(tab_content);
+	});
+	tab_content.data('offset', 0);
+	tab_content.data('word', word);
+}
+
+function showVocabularySample(container)
+{
+	var word = container.data('word'),
+		offset = container.data('offset');
+	if (!container.find('li').length) {
+		sendMessage({
+			action: "getVocabularyExamples",
+			word: word,
+			offset: offset
+		}, function(data) {
+			//data = JSON.parse(response);
+			var ul = container.find('ol');
+			if (data.result.sentences) {
+				data.result.sentences.forEach(function(ele, i) {
+					renderHTML(ele).append(link(ele)).appendTo(ul);
+				});
+				ul.find('li').mouseenter(function(e) {
+					var btn = $('<div class="actions btn-group pull-right"><a class="btn btn-mini" href="javascript:void(0)">添加到自建例句</a></div>');
+					$(e.currentTarget).append(btn);
+					btn.click(function(e) {
+						var li = $(e.currentTarget).parent();
+						var tab = $('#example-tab').find('li a.ex-voc-box-tab').parent().prev().find('a');
+						setTimeout(function() {
+							tab[0].click();
+							setTimeout(function() {
+								var ori = li.find('.sentence').text();
+								var trans = li.find('.source').text();
+								$('#ex-create').find('#newex').val(ori);
+								$('#ex-create').find('#newtrans').val(trans);
+							}, 1);
+						}, 1);
+						/*
+						var ori = li.find('.sentence').text();
+						var trans = li.find('.source').text();
+						getContentIdByWord(word, function(content_id) {
+							addExample(ori, trans, content_id, function(){});
+						});
+						*/
+					});
+				}).mouseleave(function(e) {
+					$(e.currentTarget).find('.actions').remove();
+				});
+			}
+		});
+	}
+}
+
+function addExample(ori, trans, content_id, callback)
+{
+	$.post('/api/v1/bdc/example/', {
+		original: ori,
+		translation: trans,
+		vocabulary: content_id
+	}, function(r) {
+		callback(r);
+	});
+}
+
+function getContentIdByWord(word, callback)
+{
+	$.getJSON('/api/v1/bdc/search/', {word:word}, function(r) {
+		callback(r.data.content_id);
+	});
+}
+
+function renderHTML(result) {
+	var sent = $('<div class="sentence"/>');
+	var str = result.sentence;
+	var offsets = result.offsets;
+	var last = 0;
+	for (var i = 0; i < offsets.length; i += 2) {
+		sent.append(document.createTextNode(str.substring(last, offsets[i])));
+		sent.append($("<strong/>").text(str.substring(offsets[i], offsets[i + 1])));
+		last = offsets[i + 1]
+	}
+	sent.append(document.createTextNode(str.substring(last)));
+	return $("<li/>").append(sent)
+}
+
+function link(result) {
+	var sourceLink = $('<a target="_blank" class="source"></a>');
+	var $title = $("<span />").appendTo(sourceLink);
+	if (result.volume.corpus.id == "GUT") {
+		sourceLink.attr("href", "http://www.gutenberg.org/ebooks/" + result.volume.locator);
+		$title.addClass("author").text(result.volume.author)
+	} else {
+		if (result.volume.corpus.id == "LIT") {
+			$title.addClass("title").text(result.volume.title)
+		} else {
+			$title.addClass("corpus").text(result.volume.corpus.name);
+			if (result.volume.datePublished) {
+				$('<span class="date" />').text((new Date(Date.parse(result.volume.datePublished))).toDateString()).appendTo(sourceLink)
+			}
+		}
+		if (result.volume.asin) {
+			sourceLink.attr("href", "http://www.amazon.com/dp/" + result.volume.asin + "?tag=vocabularyc00-20")
+		} else {
+			if (result.volume.locator && result.volume.locator.indexOf("http") == 0) {
+				sourceLink.attr("href", result.volume.locator)
+			}
+		}
+	}
+	return sourceLink
+}
+
+
+
