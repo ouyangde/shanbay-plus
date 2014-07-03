@@ -286,10 +286,16 @@ var g_expandVocabulary = false; // 默认情况不展开
 
 function showVocabularyResponse(word, response, pos) {
 	var content = $(response).find('.blurb');
+	
+	if (content.length) {
+		$('#review-definitions .cndf .text').css('color', '#f7f7f7');
+	}
+	
 	if (!content.length && response.length < 10) {
 		// 显示错误信息
 		content = $('<span class="error" style="color:gray;cursor:pointer"></span>').text(response);
 	}
+
 	if (true) {
 		var readMore = content.find(".readMore");
 		if (readMore.length) {
