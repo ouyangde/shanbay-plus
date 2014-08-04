@@ -5,6 +5,8 @@
 // @author         unknown
 // @namespace      http://shanbay.com/
 // @include        http://www.shanbay.com/*
+// @grant   GM_xmlhttpRequest
+// @grant   GM_addStyle
 // ==/UserScript==
 
 GM_addStyle('#learnings-library .learning .operations .success { padding: 0px !important; } #shanbayplus_add_review .blurb { color: #444; font-size: 105%; margin-bottom: 20px } #shanbayplus_add_review .blurb .short i:first-of-type { color: #438007; font-style: normal } #shanbayplus_add_review .blurb .short { font-size: 130%; margin-top: 0; margin-bottom: .5em; font-weight: bold } #shanbayplus_add_review .blurb .sidebar { background-color: #eee; color: #666; float: right; font-size: 12px; margin: 0px 0 0px 10px; padding: 6px 8px; width: 175px } #shanbayplus_add_review .sidebar h3 { display: none; } #shanbayplus_add_review .sidebar .body { line-height: 15px; } #shanbayplus_add_review .sidebar h4 { border: 0; margin: 0 0 5px 0; padding: 0; color: #438007; font-size: 15px } #shanbayplus_add_review .sidebar .readMore { white-space: nowrap } .retention-progress { height: 20px; margin-bottom: 10px; border: 1px solid #ccc; } .retention-progress .retention-reviewed { height: 20px; background-color: #209E85; } .retention-progress .retention-reviewed .bar { text-align: center; color: white; font-size: 14px; }');
