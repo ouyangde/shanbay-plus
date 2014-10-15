@@ -1,10 +1,6 @@
 
 function main(option) {
 
-// -------------------------------------------------------查词窗口
-speak = function(r) {// 直接发用户首选的音
-	play_mp3(r.data.audio);
-};
 
 // ---------------------------------------------批量添加
 $('#add-learnings .instruction').append('<font color="blue">已解除10个词的限制(每次依然仅提交10个，但多出的词会保留在文本框内，以备再次提交)</font>');
@@ -288,7 +284,7 @@ function showVocabularyResponse(word, response, pos) {
 	var content = $(response).find('.blurb');
 	
 	if (content.length) {
-		$('#review-definitions .cndf .text').css('color', '#f7f7f7');
+		$('#review-definitions .cndf .text').css({'color': '#f7f7f7','cursor':'pointer'}).click(function(){$(this).css({'color':'',cursor:''})});
 	}
 	
 	if (!content.length && response.length < 10) {
