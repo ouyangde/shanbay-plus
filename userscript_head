@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Shanbay Plus
 // @description    批量添加单词增强;单词书创建增强;单词助记
-// @version        0.89
+// @version        0.90
 // @author         unknown
 // @namespace      http://shanbay.com/
 // @include        http://www.shanbay.com/*

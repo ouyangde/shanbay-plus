@@ -90,3 +90,7 @@ font-style: normal;
 	right: 0;
 	bottom: 0;
 }
+
+.wordbook-create-candidate-wordlist.highlight {
+	background-color: #fff;
+}

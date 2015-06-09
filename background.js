@@ -34,7 +34,7 @@ function getVocabulary(word, sendResponse) {
 
 }
 
-var request = window.indexedDB.open("shanbay_plus");
+var request = window.indexedDB.open("shanbay_plus", 2);
 request.onerror = function(event) {
 	//alert("Why didn't you allow my web app to use IndexedDB?!");
 	console.log(event);
@@ -45,10 +45,29 @@ request.onsuccess = function(event) {
 request.onupgradeneeded = function(event) {
    // 更新对象存储空间和索引 .... 
 	var db = event.target.result;
-	var objectStore = db.createObjectStore("vocabulary", { keyPath: "word" });
-	objectStore.createIndex("time", "time", { unique: false });
+	var objectStore;
+	if (!db.objectStoreNames.contains("vocabulary")) {
+		objectStore = db.createObjectStore("vocabulary", { keyPath: "word" });
+		objectStore.createIndex("time", "time", { unique: false });
+	}	
+	objectStore = db.createObjectStore("example", { keyPath: "word" });
 }
 
+function putExample(word, example_id) {
+	var objectStore = g_db.transaction(["example"], "readwrite").objectStore("example");
+	objectStore.put({word: word, example_id: example_id});
+}
+
+function getExamples(callback) {
+	var objectStore = g_db.transaction(["example"], "readwrite").objectStore("example");
+	objectStore.openCursor.onsuccess = function(event) {
+		var cursor = event.target.result;
+		if (cursor) {
+			callback(cursor.value);
+			cursor.continue();
+		}
+	};
+}
 function clearExpire() {
 	var objectStore = g_db.transaction(["vocabulary"], "readwrite").objectStore("vocabulary");
 	var index = objectStore.index('time');
@@ -156,6 +175,10 @@ onMessage(function(request, sender, sendResponse) {
   else if (request.action == "getVocabularyExamples") {
 	// must return a value, if not immediately send a response.
     return getVocabularyExamples(request.word, request.offset, sendResponse);
+  }
+  else if (request.action == "putExample") {
+    putExample(request.word, request.example_id);
+    sendResponse({});
   }
   else {
     sendResponse({});

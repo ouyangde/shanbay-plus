@@ -123,82 +123,6 @@ if (option.LENGTH_PER_QUERY>0 && reader_nav.length) {
 	},2000);
 }// end of 查词限制
 
-// ---------------------------------------单词书
-if ($('#to_add_vocabulary').length) {
-	var wordForm = $('<p style="color: #209E95; font-weight: bold;">或使用下面的批量添加</p>'+
-			'<form action="/api/v1/wordlist/vocabulary/" method="post">'+
-			'<textarea name="word"></textarea>'+
-			'<input type="submit" class="btn btn-success" value="提交">'+
-			'</form>'),
-	notFound = $('<div class="hide"><h4>下列单词未找到</h4><ul></ul></div>'),
-	dup = $('<div class="hide"><h4>下列单词已经存在</h4><ul></ul></div>'),
-	notAdd = $('<div class="hide"><h4>下列单词不予添加（数量限制？）</h4><ul></ul></div>');
-
-	$('#to_add_vocabulary').after(notAdd).after(dup).after(notFound).after(wordForm);
-
-	wordForm.submit(function() {
-		var form = $(this);
-		var textarea = form.find('textarea');
-		var url = form.attr('action');
-		var words = $.trim(textarea.val());
-		var wordlist_id = $('#wordlist-id').html();
-		var word;
-		if (words.length == 0) {
-			textarea.focus();
-			return false;
-		}
-
-		form.find('input[type=submit]').hide();
-		words = words.split('\n');
-		textarea.focus().val('');
-		notFound.hide().find('ul').empty();
-		notAdd.hide().find('ul').empty();
-		dup.hide().find('ul').empty();
-
-		var finish_add = function(words) {
-			words.forEach(function(val){
-				notAdd.show().find('ul').append('<li>'+val+'</li>');
-			});
-			form.find('input[type=submit]').show();
-		}
-		var add_next = function(words) {
-			if (words.length == 0) {
-				return finish_add(words);
-			}
-
-			word = words.shift();
-			$.post(url, {word: word, id: wordlist_id}, function(res) {
-				if (res.status_code != 0) {
-					// 没找到
-					if (res.status_code == 404) {
-						notFound.show().find('ul').append('<li>'+word+'</li>');
-					}
-					else if (res.msg.match("存在")) {
-					   	// 单词已经存在
-						dup.show().find('ul').append('<li>'+word+'</li>');
-					}
-					// 其他原因
-					else if (true) {
-						words.unshift(word);
-						return finish_add(words);
-					}
-				}
-				else {
-					var html = $('#vocab-entry').tmpl(res.data);
-					$('table tbody').prepend(html);
-					trigger_add_example_modal();
-					trigger_edit_definition_modal();
-					enable_delete_button();
-					update_wordlist_num_vocab(1);
-				}
-				add_next(words);
-			});
-		}
-		add_next(words);
-		return false;
-	});
-}// end of 单词书
-
 // ---------------------------------------跳过新版步骤
 if (option.SKIP_REVIEW_MODE > 0 && typeof ReviewView != 'undefined') {
 	ReviewView.prototype.render_detail = function(prev_mode, result) {
@@ -458,5 +382,207 @@ function link(result) {
 	return sourceLink
 }
 
+// 全自动创建单词书
+$(function() {
+	if (!$('.btn-add-new-unit-container').length) return;
+	var container = $('<div><p style="color: #209E95; font-weight: bold;">批量添加格式：单词\\t例句\\t例句解释</p>'+
+	'<p style="color: #209E95; font-weight: bold;">当前单元：<span></span></p></div>');
+	var wordForm = $('<form action="/api/v1/wordlist/vocabulary/" method="post">'+
+			'<textarea name="word"></textarea>'+
+			'<input type="submit" class="btn btn-success" value="提交">'+
+			'</form>'),
+	notFound = $('<div class="hide"><h4>下列单词未找到</h4><ul></ul></div>'),
+	dup = $('<div class="hide"><h4>下列单词已经存在</h4><ul></ul></div>'),
+	example_failed = $('<div class="hide"><h4>下列单词例句添加失败</h4><ul></ul></div>'),
+	notAdd = $('<div class="hide"><h4>框中剩余单词不予添加（数量限制？）</h4><ul></ul></div>');
+	var cur_wordlist_id, cur_unit_name, cur_unit;
+
+	container.append(wordForm).append(notFound).append(dup).append(notAdd).append(example_failed);
+	$('.btn-add-new-unit-container').after(container);
+	$('#wordbook-wordlist-container').delegate('.wordbook-create-candidate-wordlist', 'click', function(evt) {
+		cur_unit = $(evt.currentTarget);
+		cur_wordlist_id = cur_unit.find('a.btn-update-unit-info').attr('unit-id');
+		container.find("span").text(cur_unit.find(".wordbook-wordlist-name").text());
+		$(evt.currentTarget).siblings().removeClass("highlight").end().addClass("highlight");
+		cur_unit.after(container);
+	});
+	wordForm.submit(function() {
+		var form = $(this);
+		var textarea = form.find('textarea');
+		var url = form.attr('action');
+		var lines = $.trim(textarea.val());
+		var line, word;
+		if (!cur_wordlist_id) {
+			alert('请先选中单元');
+			return false;
+		}
+		if (lines.length == 0) {
+			textarea.focus();
+			return false;
+		}
 
 
+		form.find('input[type=submit]').hide();
+		lines = lines.split("\n");
+		textarea.focus().val('');
+		notFound.hide().find('ul').empty();
+		notAdd.hide().find('ul').empty();
+		dup.hide().find('ul').empty();
+		example_failed.hide().find('ul').empty();
+
+		var finish_add = function(lines) {
+			if (lines.length) {
+				notAdd.show();
+			}
+			form.find('input[type=submit]').show();
+			textarea.focus().val(lines.join('\n'));
+		}
+		var add_next = function(lines) {
+			if (lines.length == 0) {
+				return finish_add(lines);
+			}
+
+			line = lines.shift();
+			var arr = line.split("\t");
+			var word = arr[0];
+			$.post(url, {word: word, id: cur_wordlist_id}, function(res) {
+				if (res.status_code != 0) {
+					// 没找到
+					if (res.status_code == 404) {
+						notFound.show().find('ul').append('<li>'+word+'</li>');
+					}
+					else if (res.msg.match("存在")) {
+					   	// 单词已经存在
+						dup.show().find('ul').append('<li>'+word+'</li>');
+					}
+					// 其他原因
+					else if (true) {
+						lines.unshift(line);
+						return finish_add(lines);
+					}
+				}
+				else {
+					var num_el = cur_unit.find('.wordbook-create-wordlist-title span').parent();
+					var num_str = num_el.html().replace(/\d+/, function(n) {
+						return parseInt(n) + 1;
+					});
+					num_el.html(num_str);
+					if (arr.length > 2) {
+						return addExample(arr, res.data.vocabulary.id, lines);
+					}
+				}
+				add_next(lines);
+			});
+		}
+		var addExample = function(arr, voc_id, lines) {
+			$.post('/wordlist/vocabulary/example/add/', {
+				vocabulary_id:voc_id,
+				wordlist_id:cur_wordlist_id,
+				original:arr[1],
+				translation:arr[2]
+			}, function(data) {
+				if (data.status != 0) {
+					example_failed.show().find('ul').append('<li>'+line+'</li>');
+					return add_next(lines);
+				}
+				sendMessage({
+					action: "putExample",
+					word: voc_id,
+					example_id: data.example.id
+				}, function(result) {
+					add_next(lines);
+				});
+			});
+		}
+		add_next(lines);
+		return false;
+	});
+});
+
+// 批量加词
+$(function() {
+if (!$('#add-learnings-form').length) return;
+var form = $('#add-learnings-form').clone();
+$('#add-learnings-form').replaceWith(form);
+$('#add-learnings .instruction').append('<font color="blue">已解除10个词的限制(每次依然仅提交10个，但多出的词会保留在文本框内，以备再次提交)</font>');
+$('#add-learnings-form').unbind('submit').submit(function() {
+    var form = $(this);
+    var textarea = form.find('textarea');
+    var url = form.find('actions').text();
+    var words = $.trim(textarea.val());
+    form.find('.msg').hide();
+    if (words.length == 0) {
+        $('#error1').show();
+        textarea.focus();
+        return false;
+    }
+	var wordsArr = words.split('\n');
+	var remains = '';
+	if (wordsArr.length > 10) {
+		remains = wordsArr.slice(10).join('\n');
+		words = wordsArr.slice(0, 10).join('\n');
+	}
+
+    form.find('input[type=submit]').hide();
+    form.find('.loading').show();
+    $.getJSON(url, {words: words}, function(data) {
+        form.find('input[type=submit]').show();
+        form.find('.loading').hide();
+        if (data.result > 0) {
+            $('#error2').html(data.note).show();
+            return false;
+        }
+        var notfound_words = data.notfound_words;
+        if (notfound_words.length > 0) {
+            $('.notfounds').show();
+            $('.notfounds ul').html('');
+            $.each(notfound_words, function(k, word) {
+                $('.notfounds ul').append($('#added-failed_tmpl').tmpl({word: word}));
+            });
+        } else {
+            $('.notfounds').hide();
+        }
+        var learning_dicts = data.learning_dicts;
+        if (learning_dicts.length > 0) {
+            $('.learnings').show();
+            $('.learnings ul').html('');
+            $.each(learning_dicts, function(k, learning) {
+				var item = $('#added-learning_tmpl').tmpl({id: learning.id,pronunciation: learning.pronunciation,content: learning.content,has_audio: learning.has_audio,definition: learning.definition,uk_audio: learning.uk_audio,us_aduio: learning.us_audio});
+				item.find('.definition').hide();
+                $('.learnings ul').append(item);
+				$.getJSON('/api/v1/bdc/search/?word='+learning.content,function(r){
+					if (r.data.retention > 0) {
+						var retentionEle = $(''+
+'<div><div class="retention-progress" style="width: 200px;float: left;">'+
+  '<div class="retention-reviewed" style="width: 0%"> <div class="bar" style="width: 100%;">0</div> </div>'+
+  '<div class="retention-left"> <div class="bar" style="width: 100%;"></div> </div>'+
+'</div><button style="margin-left: 10px;">我忘了</button> </div>'+
+							'');
+						item.append(retentionEle);
+						retentionEle.find('.retention-reviewed').css({
+							width:Math.min(r.data.retention*100/r.data.target_retention,100)+'%'
+						}).find(".bar").text(r.data.retention);
+						retentionEle.find('button').click(function(e){
+							$.ajax({
+								type:"PUT",
+								url:"/api/v1/bdc/learning/"+r.data.learning_id+"/",
+								data:{retention:1},
+								success:function() {
+									retentionEle.remove();
+									item.find('.definition').show();
+							}});
+						});
+					}
+					else {
+						item.find('.definition').show();
+					}
+				});
+            });
+        } else {
+            $('.learnings').hide();
+        }
+        textarea.focus().val(remains);
+    })
+    return false;
+});
+});
