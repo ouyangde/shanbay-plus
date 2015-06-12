@@ -180,6 +180,9 @@ onMessage(function(request, sender, sendResponse) {
     putExample(request.word, request.example_id);
     sendResponse({});
   }
+  else if (request.action == 'getExample') {
+	sendResponse(examples[request.word]);
+  }
   else {
     sendResponse({});
   }

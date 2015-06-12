@@ -3,6 +3,7 @@ function main(option) {
 
 
 // ---------------------------------------------批量添加
+/*
 $('#add-learnings .instruction').append('<font color="blue">已解除10个词的限制(每次依然仅提交10个，但多出的词会保留在文本框内，以备再次提交)</font>');
 $('#add-learnings-form').unbind('submit').submit(function() {
     var form = $(this);
@@ -91,9 +92,9 @@ $('#add-learnings-form').unbind('submit').submit(function() {
     })
     return false;
 });
-
+*/
 // ----------------------------------阅读查词限制.
-
+/*
 var reader_nav = $('.reader-nav');
 if (option.LENGTH_PER_QUERY>0 && reader_nav.length) {
 	reader_nav.append('<span style="position:relative;left:50px;">剩余查词：<b class="query-number" style="font-size:20px;color:#ec4272"></b></span>');
@@ -122,7 +123,7 @@ if (option.LENGTH_PER_QUERY>0 && reader_nav.length) {
 		}
 	},2000);
 }// end of 查词限制
-
+*/
 // ---------------------------------------跳过新版步骤
 if (option.SKIP_REVIEW_MODE > 0 && typeof ReviewView != 'undefined') {
 	ReviewView.prototype.render_detail = function(prev_mode, result) {
@@ -505,6 +506,9 @@ if (!$('#add-learnings-form').length) return;
 var form = $('#add-learnings-form').clone();
 $('#add-learnings-form').replaceWith(form);
 $('#add-learnings .instruction').append('<font color="blue">已解除10个词的限制(每次依然仅提交10个，但多出的词会保留在文本框内，以备再次提交)</font>');
+$('#add-learnings').prepend('<p id="add_example"><button class="fresh">为新词添加例句</button><button class="familiar">为正在学习单词添加例句</button><button class="today">为今日单词添加例句</button></p>');
+$('#add_example button').click(likeExampleFromList);
+
 $('#add-learnings-form').unbind('submit').submit(function() {
     var form = $(this);
     var textarea = form.find('textarea');
@@ -586,3 +590,73 @@ $('#add-learnings-form').unbind('submit').submit(function() {
     return false;
 });
 });
+
+function likeExampleFromList(e) {
+	var el = $(e.currentTarget);
+	var saved = '';
+	var finish = function() {
+		el.text(saved);
+		el.removeAttr('disabled');
+	};
+	var i = 0;
+	var start = function() {
+		saved = el.text();
+		el.attr('disabled', 'disabled');
+	}
+	var step = function() {
+		el.text(++i);
+	}
+	var getList = function(type, page) {
+		$.get('/api/v1/bdc/library/'+type+'/', {page: page, '_': Math.random()}, function(r) {
+			var nextpage = function() {
+				if (page * r.data.ipp < r.data.total) {
+					getList(type, page + 1);
+				}
+				else {
+					finish();
+				}
+			};
+			wait(r.data.objects, function(item, callback) {
+				likeExample(item.id, function() {
+					step();
+					callback();
+				});
+			}, nextpage);
+
+			if (r.status_code != 0) {
+				finish();
+				return;
+			}
+		});
+	};
+	start();
+	getList(el.attr('class'), 1);
+}
+
+var wait = function(items, check, finish) {
+	if (items.length > 0) {
+		check(items[0], function() {
+			wait(items.slice(1), check, finish);
+		});
+	} else {
+		finish && finish();
+	}
+};
+	
+function likeExample(word, callback) {
+	sendMessage({
+		action: "getExample",
+		word: word
+	}, function(result) {
+		if (result != undefined) {
+			wait(result, function(item, callnext) {
+				$.post('/api/v1/bdc/learning_example/', {"example_id":item}, function() {
+					callnext();
+				});
+			}, callback);
+		}
+		else {
+			callback();
+		}
+	});
+}
