@@ -3,7 +3,7 @@ function main(option) {
 
 
 // ---------------------------------------------批量添加
-/*
+
 $('#add-learnings .instruction').append('<font color="blue">已解除10个词的限制(每次依然仅提交10个，但多出的词会保留在文本框内，以备再次提交)</font>');
 $('#add-learnings-form').unbind('submit').submit(function() {
     var form = $(this);
@@ -92,7 +92,7 @@ $('#add-learnings-form').unbind('submit').submit(function() {
     })
     return false;
 });
-*/
+
 // ----------------------------------阅读查词限制.
 /*
 var reader_nav = $('.reader-nav');
@@ -503,12 +503,13 @@ $(function() {
 // 批量加词
 $(function() {
 if (!$('#add-learnings-form').length) return;
+
+$('#add-learnings').prepend('<p id="add_example"><button class="fresh">为新词添加例句</button><button class="familiar">为正在学习单词添加例句</button><button class="today">为今日单词添加例句</button></p>');
+$('#add_example button').click(likeExampleFromList);
+/*
 var form = $('#add-learnings-form').clone();
 $('#add-learnings-form').replaceWith(form);
 $('#add-learnings .instruction').append('<font color="blue">已解除10个词的限制(每次依然仅提交10个，但多出的词会保留在文本框内，以备再次提交)</font>');
-$('#add-learnings').prepend('<p id="add_example"><button class="fresh">为新词添加例句</button><button class="familiar">为正在学习单词添加例句</button><button class="today">为今日单词添加例句</button></p>');
-$('#add_example button').click(likeExampleFromList);
-
 $('#add-learnings-form').unbind('submit').submit(function() {
     var form = $(this);
     var textarea = form.find('textarea');
@@ -589,6 +590,7 @@ $('#add-learnings-form').unbind('submit').submit(function() {
     })
     return false;
 });
+*/
 });
 
 function likeExampleFromList(e) {
